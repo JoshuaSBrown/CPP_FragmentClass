@@ -18,76 +18,47 @@ Fragment::Fragment(vector<int> vertex){
     SimpleNode<int> sn_temp(*it);
     this->sn.push_back(make_shared<SimpleNode<int>>(sn_temp));
   }
-  // Assign the id of the fragment from a file scope id parameter 
+  // Assign the id of the fragment from a file scope id parameter
   this->id = frag_id;
-  frag_id++; 
+  frag_id++;
 }
 
-Fragment::Fragment(vector<int> vertex, vector<vector<int>> edges){
+Fragment::Fragment(vector<int> vertex, vector<vector<int>> neighbors){
   // iterate through all the vertices
   // and create new nodes for all of them
-  auto it2 = edges.begin();
+  auto it2 = neighbors.begin();
   auto it  = vertex.begin();
-  while( it!=vertex.end() && it2!=edges.end()){
+  while( it!=vertex.end() && it2!=neighbors.end()){
     SimpleNode<int> sn_temp(*it,*it2);
     this->sn.push_back(make_shared<SimpleNode<int>>(sn_temp));
     ++it;
     ++it2;
-  } 
-  // Assign the id of the fragment from a file scope id parameter 
+  }
+  // Assign the id of the fragment from a file scope id parameter
   this->id = frag_id;
-  frag_id++; 
+  frag_id++;
 }
 
-// The function will only add an edge it will not add a node if the 
-// edge does not correspond to a node already existing within the 
-// fragment.
-//
-// Note that if the nodes the edges describe are not in the fragment
-// then nothing is done. If one node is found then the edge for that
-// node is updated but if the other one is not in the fragment a new
-// node is NOT created (nothing is done). 
 void Fragment::addEdge(vector<int> edge){
-  // Look to see what vertices are described by the edges
   int ID1 = edge.at(0);
   int ID2 = edge.at(1);
-
+  addVertex(ID1);
+  addVertex(ID2);
   // Cycle through nodes
   for(auto it=this->sn.begin();it!=this->sn.end();++it){
     if(it->get()->getID()==ID1){
-      //Check to see if ID1 is already got the connection to 
-      //ID2 we should not add it if it does
-      int add = 1; // 0 - don't add 1 - add
-      for(auto it2=it->get()->begin();it2!=it->get()->end();++it2){
-        if(*it2==ID2){
-          // Don't add and exit
-          add = 0;
-          break;
-        }
-      }
-      if(add){
-        it->get()->addE(ID2);
-      }
+      it->get()->addE(ID2);
     }
     if(it->get()->getID()==ID2){
-      int add = 1;
-      for(auto it2=it->get()->begin();it2!=it->get()->end();++it2){
-        if(*it2==ID1){
-          add = 0;
-          break;
-        }
-      }
-      if(add){
-        it->get()->addE(ID1);
-      }
+      it->get()->addE(ID1);
     }
-  } 
+  }
 
 }
 
 // This function works by checking to see if the vertex already exists
-// in the fragment. If the vertex does not exist it adds it to the 
-// fragment. 
+// in the fragment. If the vertex does not exist it adds it to the
+// fragment.
 void Fragment::addVertex(int vert){
   // Cycle through nodes to see if the vertex has already been added
   int add = 1; // add the vertex if add == 1 after the for loop
@@ -118,4 +89,43 @@ ostream & operator<<(ostream &os,const Fragment frag){
     node_index++;
   }
   os << "Finished"<< endl;
+}
+
+struct _node{
+  bool visited = false;
+  int previous = -1;
+  int id;
+};
+
+typedef struct _node node;
+
+std::vector<Fragment> findSmallCycles(std::vector<int> all_vertices, std::vector<std::vector<int>> all_neighbors{
+  std::vector<std::vector<int>> visited_neighbors = all_neighbors;
+  bool visited = false;
+  for (int i=0; i<all_vertices.size(); i++){
+    if (visited_neighbors.at(i).size() < 2){
+      all_vertices.erase(all_vertices.begin()+i);
+      visited_neighbors.erase(visited_neighbors.begin()+i);
+      i--;
+    }
+  }
+  node curr;
+  curr.previous = all_vertices.at(0);
+  curr.id = curr.visited_neighbors.at(0);
+  visited_neighbors.erase(curr.previous)
+}
+
+/* 1. Duplicate the vector of neighbors, which will store the ids of the visited neighbors.
+ * 2. Iterate through all the vertices and remove the ones that have only one connection.
+ * 3. Pick the first atom of the vector all_vertices.
+ * 4. Mark it as visited. Go to the first atom connected to it.
+ * 5. Check if it has been visited already. If not, go to 6. If yes, go to 7.
+ * 6. Remove the id of the atom it came from from its visited neighbors. Go to 4.
+ *
+ * 7. "Extract all elements between the repeating ids. store in new obj."
+ * 8.
+ *
+ *
+ *
+ */
 }
